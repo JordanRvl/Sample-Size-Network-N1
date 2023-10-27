@@ -1,0 +1,100 @@
+---
+title: "Power and PAA results"
+author:
+   - name: Yong Zang, yong.zhang@rug.nl, University of Groningen
+   - name: Jordan Revol, jordan.revol@kuleuven.be, KU Leuven
+date: "`r Sys.Date()`"
+output: 
+    html_document:
+        toc: true
+        toc_depth: 3
+        number_sections: true
+        toc_float: true
+        df_print: paged
+---
+
+# Import
+
+Load libraries
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(kableExtra)
+library(stringr)
+```
+
+
+Import data
+```{r}
+df_res <- read.csv("data/df_results.csv")
+```
+
+
+
+# Power results
+
+Plot
+
+```{r, fig.height=12, fig.width=12}
+p = df_res %>%
+    gather(variable, power, starts_with("pow")) %>%
+    mutate(variable = str_replace(variable, "pow_", "")) %>%
+    ggplot(aes(y=power, x=variable, color=factor(timepoint), group=factor(timepoint))) +
+        geom_line() +
+        geom_point() +
+        geom_hline(yintercept = .8) +
+        facet_grid(name~.) +
+        theme(axis.text.x = element_text(angle = 90)) +
+        theme_bw()
+
+ggsave("figures/outputs/power_curve.png", plot=p)
+
+p
+```
+
+
+
+# PAA results
+
+Table version
+```{r}
+# Reshape dataframe to get a table
+table_paa <- df_res %>%
+    dplyr::select(c(dataset=name,variables=vars,timepoint,paa)) %>%
+    spread(timepoint, paa)
+
+# Transform in kable and add a second header 
+T_number <- ncol(table_paa) - 2
+table_paa <- kbl(table_paa) %>%
+  kable_classic() %>%
+  add_header_above(c(" " = 2, "T" = T_number))
+
+# Save kable
+save_kable(table_paa, "figures/outputs/table_paa.png")
+
+table_paa
+```
+
+
+Plot version
+```{r}
+breaks = unique(df_res$timepoint)
+
+p = df_res %>%
+    dplyr::select(c(name,vars,timepoint,paa)) %>%
+    ggplot(aes(y=paa, x= timepoint, color=name)) +
+        geom_line() +
+        geom_point() +
+        scale_x_continuous(breaks = breaks) +
+        theme_bw()
+
+ggsave("figures/outputs/paa_curve.png", plot=p)
+
+p
+```
+
+
+
+
+
