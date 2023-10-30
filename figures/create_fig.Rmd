@@ -34,9 +34,43 @@ df_res <- read.csv("data/df_results.csv")
 
 # Power results
 
-Plot
+Table version: T that reached .8 over every model and parameters.
+Note that:
 
-```{r, fig.height=12, fig.width=12}
+- "na" (not applicable) when the parameter is not included in the model. It occurs because the model on epskamp has more parameters.
+- "500+" to specify that power has not reached .8, even with Ttraining = 500.
+
+```{r}
+max_timepoint = max(df_res$timepoint)
+df_res_pow = df_res %>%
+    gather(par, pow, pow_int_V1:pow_V7_V7lag) %>%
+    group_by(name, vars, par) %>%
+    mutate(pow_reach = ifelse(pow >= .8 | timepoint == max_timepoint, 1, 0)) %>%
+    filter(pow_reach==1) %>%
+    slice(which.min(timepoint)) %>%
+    mutate(T_pow = ifelse(is.na(pow), "na", ifelse(pow < .8, "500+",paste0(as.character(timepoint), " (", round(pow, 2), ")"))),
+           par = str_remove(par, "pow_")) %>%
+    ungroup() %>%
+    dplyr::select(-c(vars,timepoint,sim_time,paa, pow_reach, pow)) %>%
+    spread(par, T_pow)
+
+# df_res_pow %>% as.data.frame()
+
+table_res_pow = kbl(df_res_pow) %>%
+    kable_classic()
+
+# Save kable
+save_kable(table_res_pow, "figures/outputs/table_res_pow.png")
+
+table_res_pow
+```
+
+
+
+
+Plot version
+
+```{r, fig.height=20, fig.width=17}
 p = df_res %>%
     gather(variable, power, starts_with("pow")) %>%
     mutate(variable = str_replace(variable, "pow_", "")) %>%
@@ -45,13 +79,15 @@ p = df_res %>%
         geom_point() +
         geom_hline(yintercept = .8) +
         facet_grid(name~.) +
-        theme(axis.text.x = element_text(angle = 90)) +
-        theme_bw()
+        theme_bw() +
+        theme(axis.text.x = element_text(angle = 90))
 
 ggsave("figures/outputs/power_curve.png", plot=p)
 
 p
 ```
+
+
 
 
 
@@ -87,6 +123,7 @@ p = df_res %>%
         geom_line() +
         geom_point() +
         scale_x_continuous(breaks = breaks) +
+        scale_y_continuous(breaks = seq(0,1,.1)) +
         theme_bw()
 
 ggsave("figures/outputs/paa_curve.png", plot=p)
