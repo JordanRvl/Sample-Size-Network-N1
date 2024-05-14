@@ -6,6 +6,7 @@ sim_var_data <- function(tm, n_training_sample, VAR_delta, VAR_phi, VAR_sigma){
     # For one run:
     # Simulate innovations
     sim_innovation_list <- list()
+    innovation_list <- list()
 
     for (i in 1:n_training_sample){
         sim_innovation <- mvrnorm(n = N_sim,
@@ -45,6 +46,9 @@ sim_var_data <- function(tm, n_training_sample, VAR_delta, VAR_phi, VAR_sigma){
     for (i in 1:n_training_sample){
         Y <- Y_complete_list[[i]][-(1:N_burning),]
         Y_list[[i]] <- Y
+
+        innovation <- sim_innovation_list[[i]][-(1:N_burning),]
+        innovation_list[[i]] <- innovation
     }
 
     # Create lagged variables for analysis and rename variables
@@ -56,5 +60,5 @@ sim_var_data <- function(tm, n_training_sample, VAR_delta, VAR_phi, VAR_sigma){
         Y_analysis_list[[i]] <- Y_analysis
     }
     
-    return(Y_analysis_list)
+    return(list(Y_list=Y_analysis_list, innov_list=innovation_list))
 }

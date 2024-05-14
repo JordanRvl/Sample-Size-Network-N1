@@ -1,8 +1,8 @@
 ---
 title: "Power and PAA results"
 author:
-   - name: Yong Zang, yong.zhang@rug.nl, University of Groningen
    - name: Jordan Revol, jordan.revol@kuleuven.be, KU Leuven
+   - name: Yong Zang, yong.zhang@rug.nl, University of Groningen
 date: "`r Sys.Date()`"
 output: 
     html_document:
@@ -13,32 +13,504 @@ output:
         df_print: paged
 ---
 
+# Introduction
+
+This document is the results of the simulation from the manuscript by Zhang et al. (2021) "Meeting the Bare Minimum: Quality Assessment of Idiographic Temporal Networks Using Power Analysis and Predictive Accuracy Analysis". 
+
+
 # Import
 
 Load libraries
 ```{r, warning=FALSE, message=FALSE}
 library(dplyr)
 library(tidyr)
+library(data.table)
 library(ggplot2)
 library(kableExtra)
 library(stringr)
+library(graphicalVAR)
+library(qgraph)
+library(fastmatrix)
 ```
 
 
 Import data
 ```{r}
 df_res <- read.csv("data/df_results.csv")
+load("data/list_param.rda")
+```
+
+
+# Plot
+
+Figures of the VAR(1) networks based on the parameters of the different models investigated in the article. 
+The figures can be found in the folder 'figures/network/'. 
+
+
+## Illustration
+
+```{r}
+VAR_phi = list_param$illustration$phi
+
+# Visualize the temporal network
+qgraph(t(VAR_phi),
+       node.width = 1.6,
+       node.height = 1.6,
+       mar = c(6, 6, 6, 6),
+       # layout = matrix(c(0, 1, 0,
+       #                   0, 0, 0,
+       #                   2, 0, 3),
+       #                 nrow = 3, byrow = T),
+       layout = "groups",
+       theme = "colorblind",
+       negDashed = T,
+       edge.labels = T,
+    #    labels = c("Relaxed",
+    #               "Sad",
+    #               "Nervous",
+    #               "Concen- \ntration",
+    #               "Tired",
+    #               "Rumi- \nnation",
+    #               "Bodily \ndiscomfort"),
+       label.prop = 0.9,
+       label.fill.horizontal = .8,
+       label.fill.vertical = .8,
+       label.scale = TRUE,
+       fade = FALSE,
+       filetype = "png",
+       filename = "figures/network/illustration")
+```
+
+
+## Epskamp, van Borkulo, et al., 2018
+
+```{r}
+VAR_phi = list_param$epskamp$phi
+
+# Visualize the temporal network
+qgraph(t(VAR_phi),
+       node.width = 1.6,
+       node.height = 1.6,
+       mar = c(6, 6, 6, 6),
+       # layout = matrix(c(0, 1, 0,
+       #                   0, 0, 0,
+       #                   2, 0, 3),
+       #                 nrow = 3, byrow = T),
+       layout = "groups",
+       theme = "colorblind",
+       negDashed = T,
+       edge.labels = T,
+       labels = c("Relaxed",
+                  "Sad",
+                  "Nervous",
+                  "Concen- \ntration",
+                  "Tired",
+                  "Rumi- \nnation",
+                  "Bodily \ndiscomfort"),
+       label.prop = 0.9,
+       label.fill.horizontal = .8,
+       label.fill.vertical = .8,
+       label.scale = TRUE,
+       fade = FALSE,
+       filetype = "png",
+       filename = "figures/network/epskamp_vanBorkulo_2018_colorblind")
+```
+
+
+## Bak2016 Full relaspe
+
+```{r}
+# Network visualization
+reg_mat <- list_param$bak2016_full$phi
+p_mat <- list_param$bak2016_full$p_mat
+plot_reg_mat <- hadamard(reg_mat, 1*(p_mat < .05))
+
+qgraph(t(plot_reg_mat),
+       node.width = 1.6,
+       node.height = 1.6,
+       mar = c(6, 6, 6, 6),
+       # layout = matrix(c(0, 1, 0,
+       #                   0, 0, 0,
+       #                   2, 0, 3),
+       #                 nrow = 3, byrow = T),
+       layout = "groups",
+       theme = "colorblind",
+       title = "a) Full relapse",
+       negDashed = T,
+       edge.labels = T,
+       labels = c("Down",
+                  "Relaxed",
+                  "Paranoia",
+                  "Hearing \nvoices",
+                  "Loss of \ncontrol"),
+       label.prop = 0.9,
+       label.fill.horizontal = .8,
+       label.fill.vertical = .8,
+       label.scale = TRUE,
+       fade = FALSE,
+       filetype = "png",
+       filename = "figures/network/Bak2016_full_relapse_combine")
+```
+
+
+```{r}
+# Network visualization
+reg_mat <- list_param$bak2016_full_plus1se$phi
+p_mat <- list_param$bak2016_full_plus1se$p_mat
+plot_reg_mat <- hadamard(reg_mat, 1*(p_mat < .05))
+
+qgraph(t(plot_reg_mat),
+       node.width = 1.6,
+       node.height = 1.6,
+       mar = c(6, 6, 6, 6),
+       # layout = matrix(c(0, 1, 0,
+       #                   0, 0, 0,
+       #                   2, 0, 3),
+       #                 nrow = 3, byrow = T),
+       layout = "groups",
+       theme = "colorblind",
+       title = "x) Full relapse estimates +1se",
+       negDashed = T,
+       edge.labels = T,
+       labels = c("Down",
+                  "Relaxed",
+                  "Paranoia",
+                  "Hearing \nvoices",
+                  "Loss of \ncontrol"),
+       label.prop = 0.9,
+       label.fill.horizontal = .8,
+       label.fill.vertical = .8,
+       label.scale = TRUE,
+       fade = FALSE,
+       filetype = "png",
+       filename = "figures/network/Bak2016_full_relapse_combine_plus1se")
+
+
+```
+
+
+
+
+```{r}
+# Network visualization
+reg_mat <- list_param$bak2016_full_minus1se$phi
+p_mat <- list_param$bak2016_full_minus1se$p_mat
+plot_reg_mat <- hadamard(reg_mat, 1*(p_mat < .05))
+
+qgraph(t(plot_reg_mat),
+       node.width = 1.6,
+       node.height = 1.6,
+       mar = c(6, 6, 6, 6),
+       # layout = matrix(c(0, 1, 0,
+       #                   0, 0, 0,
+       #                   2, 0, 3),
+       #                 nrow = 3, byrow = T),
+       layout = "groups",
+       theme = "colorblind",
+       title = "x) Full relapse estimates -1se",
+       negDashed = T,
+       edge.labels = T,
+       labels = c("Down",
+                  "Relaxed",
+                  "Paranoia",
+                  "Hearing \nvoices",
+                  "Loss of \ncontrol"),
+       label.prop = 0.9,
+       label.fill.horizontal = .8,
+       label.fill.vertical = .8,
+       label.scale = TRUE,
+       fade = FALSE,
+       filetype = "png",
+       filename = "figures/network/Bak2016_full_relapse_combine_minus1se")
+
+
+```
+
+
+
+## bak2016_relapse
+
+```{r}
+# Network visualization
+reg_mat <- list_param$bak2016_relapse$phi
+p_mat <- list_param$bak2016_relapse$p_mat
+plot_reg_mat <- hadamard(reg_mat, 1*(p_mat < .05))
+
+qgraph(t(plot_reg_mat),
+       node.width = 1.6,
+       node.height = 1.6,
+       mar = c(6, 6, 6, 6),
+       # layout = matrix(c(0, 1, 0,
+       #                   0, 0, 0,
+       #                   2, 0, 3),
+       #                 nrow = 3, byrow = T),
+       layout = "groups",
+       theme = "colorblind",
+       title = "Full relapse",
+       negDashed = T,
+       edge.labels = T,
+       labels = c("Down",
+                  "Relaxed",
+                  "Paranoia",
+                  "Hearing \nvoices",
+                  "Loss of \ncontrol"),
+       label.prop = 0.9,
+       label.fill.horizontal = .8,
+       label.fill.vertical = .8,
+       label.scale = TRUE,
+       fade = FALSE,
+       filetype = "png",
+       filename = "figures/network/Bak2016_relapse")
+```
+
+
+
+## Bak2016 stable
+
+```{r}
+# Network visualization
+reg_mat <- list_param$bak2016_stable$phi
+p_mat <- list_param$bak2016_stable$p_mat
+plot_reg_mat <- hadamard(reg_mat, 1*(p_mat < .05))
+
+qgraph(t(plot_reg_mat),
+       node.width = 1.6,
+       node.height = 1.6,
+       mar = c(6, 6, 6, 6),
+       # layout = matrix(c(0, 1, 0,
+       #                   0, 0, 0,
+       #                   2, 0, 3),
+       #                 nrow = 3, byrow = T),
+       title = "a) Point estimates",
+       layout = "groups",
+       theme = "colorblind",
+       negDashed = T,
+       edge.labels = T,
+       labels = c("Down",
+                  "Relaxed",
+                  "Paranoia",
+                  "Hearing \nvoices",
+                  "Loss of \ncontrol"),
+       label.prop = 0.9,
+       label.fill.horizontal = .8,
+       label.fill.vertical = .8,
+       label.scale = TRUE,
+       fade = FALSE,
+       filetype = "png",
+       filename = "figures/network/Bak2016_stable")
+```
+
+```{r}
+# Network visualization
+reg_mat <- list_param$bak2016_stable_plus1se$phi
+p_mat <- list_param$bak2016_stable_plus1se$p_mat
+plot_reg_mat <- hadamard(reg_mat, 1*(p_mat < .05))
+
+qgraph(t(plot_reg_mat),
+       node.width = 1.6,
+       node.height = 1.6,
+       mar = c(6, 6, 6, 6),
+       # layout = matrix(c(0, 1, 0,
+       #                   0, 0, 0,
+       #                   2, 0, 3),
+       #                 nrow = 3, byrow = T),
+       title = "b) 1 SE larger",
+       layout = "groups",
+       theme = "colorblind",
+       negDashed = T,
+       edge.labels = T,
+       labels = c("Down",
+                  "Relaxed",
+                  "Paranoia",
+                  "Hearing \nvoices",
+                  "Loss of \ncontrol"),
+       label.prop = 0.9,
+       label.fill.horizontal = .8,
+       label.fill.vertical = .8,
+       label.scale = TRUE,
+       fade = FALSE,
+       filetype = "png",
+       filename = "figures/network/Bak2016_stable_plus1se")
+```
+
+
+
+
+```{r}
+# Network visualization
+reg_mat <- list_param$bak2016_stable_minus1se$phi
+p_mat <- list_param$bak2016_stable_minus1se$p_mat
+plot_reg_mat <- hadamard(reg_mat, 1*(p_mat < .05))
+
+qgraph(t(plot_reg_mat),
+       node.width = 1.6,
+       node.height = 1.6,
+       mar = c(6, 6, 6, 6),
+       # layout = matrix(c(0, 1, 0,
+       #                   0, 0, 0,
+       #                   2, 0, 3),
+       #                 nrow = 3, byrow = T),
+       title = "c) 1 SE smaller",
+       layout = "groups",
+       theme = "colorblind",
+       negDashed = T,
+       edge.labels = T,
+       labels = c("Down",
+                  "Relaxed",
+                  "Paranoia",
+                  "Hearing \nvoices",
+                  "Loss of \ncontrol"),
+       label.prop = 0.9,
+       label.fill.horizontal = .8,
+       label.fill.vertical = .8,
+       label.scale = TRUE,
+       fade = FALSE,
+       filetype = "png",
+       filename = "figures/network/Bak2016_stable_minus1se")
+```
+
+
+
+
+
+
+
+
+
+
+
+# All results
+
+Below, you can find the results of the power and PAA analysis for the different models. The tables are organized by model. 
+For each model, you can investigate, across different number of timepoints, the power associated to each parameters and the SPAP score.
+When there is a parenthesis, the first value corresponds to the performance metric (i.e., power or SPAP) for the -1SE parameter values and the second value corresponds to the +1SE parameter values (e.g., (-1SE, +1SE)) of the models. 
+
+```{r, fig.height=20, fig.width=17}
+pow_table = function(df, name="epskamp"){
+    df = df[df$name==name,]
+
+    # Remove columns which contains only 'NA' values
+    df <- df[, colSums(is.na(df)) != nrow(df)]
+    # Order based on timepoint
+    df <- df[order(df$timepoint),]
+    
+    # Convert to character
+    df[,4:ncol(df)] = lapply(df[,4:ncol(df)], as.character)
+    # add star is number higher than .8
+    df[,4:ncol(df)] = lapply(df[,4:ncol(df)], function(x) ifelse(as.numeric(x) > .8, paste0(x, "\\*"), x))
+
+    kbl(df, full_width = FALSE, escape = FALSE) %>%
+        kable_classic()
+}
+
+
+# Table with merged columns: est (+1SE, -1SE)
+pow_table_merge = function(df, name_select="bak2016_full", target="pow", pivot=FALSE){
+
+    df = df %>% filter(grepl(name_select, df$name)) %>%
+        mutate(name = str_remove(name, paste0(name_select)),
+               name = case_when(name == "_minus1se" ~ "-1SE",
+                                name == "_plus1se" ~ "+1SE",
+                                TRUE ~ "est"))
+    
+    # Remove columns which contains only 'NA' values
+    df <- df[, colSums(is.na(df)) != nrow(df)]
+
+    # Round the values
+    df[,4:ncol(df)] = round(df[,4:ncol(df)], 3)
+
+    # Convert to character
+    df[,4:ncol(df)] = lapply(df[,4:ncol(df)], as.character)
+    # add star is number higher than .8
+    df[,4:ncol(df)] = lapply(df[,4:ncol(df)], function(x) ifelse(as.numeric(x) > .8, paste0(x, "\\*"), x))
+    
+    df = dcast(setDT(df), timepoint ~ name, value.var = names(df)[grepl(target, names(df))], sep="_")
+
+    if (target == "pow"){
+        # Merge columns with same prefix (e.g., pow_int_V1_) as est (+1SE, -1SE)
+        prefixes = c(unique(str_extract(names(df), "pow_int_V[0-9]+_")),
+                    unique(str_extract(names(df), "pow_V[0-9]+_V[0-9]lag_"))
+                    )
+        prefixes = prefixes[!is.na(prefixes)]
+    } else {
+        prefixes = unique(str_extract(names(df), "PAP_[0-9].[0-9]*"))
+        prefixes = prefixes[!is.na(prefixes)]
+        prefixes = paste0(prefixes, "_")
+    }
+
+
+    for (prefix in prefixes) {
+        df <- df %>%
+            rowwise() %>%
+            mutate(!!prefix := paste0(get(paste0(prefix, 'est')), "\n(", get(paste0(prefix, '-1SE')), ", ", get(paste0(prefix, '+1SE')), ")")) %>%
+            ungroup()
+    }
+    df = df %>% select(-contains("est"), -contains("+1SE"), -contains("-1SE"))
+    
+    # Order based on timepoint
+    # df$timepoint = as.numeric(df$timepoint)
+    df <- df[order(df$timepoint),]
+
+    # Pivot table
+    if(pivot) df = df %>% gather(variable, value, -timepoint) %>% spread(timepoint, value)
+
+    kbl(df, full_width = FALSE, escape = FALSE) %>%
+        kable_classic() %>%
+        row_spec(seq(1, nrow(df), 2), background = "lightgray")
+
+}
+```
+
+
+
+
+
+## Tables {.tabset}
+
+
+### Epskamp
+
+```{r}
+pow_table(df_res, "epskamp")
+```
+
+### bak2016_full
+
+```{r}
+pow_table_merge(df_res, "bak2016_full")
+pow_table_merge(df_res, "bak2016_full", target="PAP", pivot=TRUE)
+```
+
+### bak2016_relapse
+
+```{r}
+pow_table_merge(df_res, "bak2016_relapse")
+pow_table_merge(df_res, "bak2016_relapse", target="PAP", pivot=TRUE)
+```
+
+### bak2016_stable
+
+```{r}
+pow_table_merge(df_res, "bak2016_stable")
+pow_table_merge(df_res, "bak2016_stable", target="PAP", pivot=TRUE)
+```
+
+### Illustration
+
+
+```{r}
+pow_table(df_res, "illustration")
 ```
 
 
 
 # Power results
 
-Table version: T that reached .8 over every model and parameters.
+Display the lower timepoint value that has reached .8 over every model and parameter.
 Note that:
 
-- "na" (not applicable) when the parameter is not included in the model. It occurs because the model on epskamp has more parameters.
-- "500+" to specify that power has not reached .8, even with Ttraining = 500.
+- "500+": specify that power has not reached .8, even with Ttraining = 500.
+- "-": specify that the power has not been computed for this parameter because it is not in the model.
 
 ```{r}
 max_timepoint = max(df_res$timepoint)
@@ -48,10 +520,10 @@ df_res_pow = df_res %>%
     mutate(pow_reach = ifelse(pow >= .8 | timepoint == max_timepoint, 1, 0)) %>%
     filter(pow_reach==1) %>%
     slice(which.min(timepoint)) %>%
-    mutate(T_pow = ifelse(is.na(pow), "na", ifelse(pow < .8, "500+",paste0(as.character(timepoint), " (", round(pow, 2), ")"))),
+    mutate(T_pow = ifelse(is.na(pow), "-", ifelse(pow < .8, "500+",paste0(as.character(timepoint), " (", round(pow, 2), ")"))),
            par = str_remove(par, "pow_")) %>%
     ungroup() %>%
-    dplyr::select(-c(vars,timepoint,sim_time,paa, pow_reach, pow)) %>%
+    dplyr::select(-c(vars,timepoint,sim_time, starts_with("PAP"), pow_reach, pow)) %>%
     spread(par, T_pow)
 
 # df_res_pow %>% as.data.frame()
@@ -60,7 +532,7 @@ table_res_pow = kbl(df_res_pow) %>%
     kable_classic()
 
 # Save kable
-save_kable(table_res_pow, "figures/outputs/table_res_pow.png")
+# save_kable(table_res_pow, "figures/outputs/table_res_pow.png")
 
 table_res_pow
 ```
@@ -68,7 +540,7 @@ table_res_pow
 
 
 
-Plot version
+Plot the power curve for each model and parameters.
 
 ```{r, fig.height=20, fig.width=17}
 p = df_res %>%
@@ -93,38 +565,48 @@ p
 
 # PAA results
 
-Table version
+
+The following table displays the SPAP score for each model and each R² targeted. 
+
 ```{r}
 # Reshape dataframe to get a table
 table_paa <- df_res %>%
-    dplyr::select(c(dataset=name,variables=vars,timepoint,paa)) %>%
-    spread(timepoint, paa)
+    gather(paa, paa_score, starts_with("PAP")) %>%
+    dplyr::select(c(dataset=name,variables=vars,timepoint,paa,paa_score)) %>%
+    spread(timepoint, paa_score)
 
 # Transform in kable and add a second header 
 T_number <- ncol(table_paa) - 2
+rows_grey <- c(outer(seq(1, nrow(table_paa), by = 6), 0:2, "+"))
 table_paa <- kbl(table_paa) %>%
   kable_classic() %>%
-  add_header_above(c(" " = 2, "T" = T_number))
+  add_header_above(c(" " = 2, "T" = T_number)) %>%
+  # Add row line every 3 rows
+  row_spec(rows_grey, background = "lightgray")
 
 # Save kable
-save_kable(table_paa, "figures/outputs/table_paa.png")
+# save_kable(table_paa, "figures/outputs/table_paa.png")
 
 table_paa
 ```
 
 
-Plot version
+The following plot displays the SPAP score for each model (colors) and each R² targeted (panels).
+
 ```{r}
 breaks = unique(df_res$timepoint)
 
 p = df_res %>%
-    dplyr::select(c(name,vars,timepoint,paa)) %>%
-    ggplot(aes(y=paa, x= timepoint, color=name)) +
+    gather(paa, paa_score, starts_with("PAP")) %>%
+    dplyr::select(c(name,vars,timepoint,paa,paa_score)) %>%
+    ggplot(aes(y=paa_score, x= timepoint, color=name)) +
+        geom_hline(yintercept = .8, color="red", alpha=.5) +
         geom_line() +
         geom_point() +
         scale_x_continuous(breaks = breaks) +
         scale_y_continuous(breaks = seq(0,1,.1)) +
-        theme_bw()
+        theme_bw() +
+        facet_grid(paa~.)
 
 ggsave("figures/outputs/paa_curve.png", plot=p)
 
