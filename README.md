@@ -14,6 +14,3 @@ To reproduce the simulation presented in the article, you need to follow the ste
 * Jordan Revol
 * Yong Zhang
 
-# Citation
-
-The preprint associated with this repository is available at: xxx
